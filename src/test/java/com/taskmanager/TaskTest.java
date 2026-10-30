@@ -3,8 +3,13 @@ package com.taskmanager;
 import com.taskmanager.exception.InvalidTaskDataException;
 import com.taskmanager.model.PersonalTask;
 import com.taskmanager.model.WorkTask;
+import com.taskmanager.model.Task;
+import com.taskmanager.persistence.TaskStorage;
 import com.taskmanager.strategy.PriorityFilter;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,5 +42,15 @@ public class TaskTest {
         PriorityFilter filter = new PriorityFilter(3);
         assertTrue(filter.matches(highPriority));
         assertFalse(filter.matches(lowPriority));
+    }
+
+    @Test
+    public void testAutoIncrementingId() throws InvalidTaskDataException {
+        List<Task> testTasks = new ArrayList<>();
+        testTasks.add(new WorkTask("1", "First Task", 2, "PROJ-1"));
+        testTasks.add(new PersonalTask("2", "Second Task", 3, false));
+
+        TaskStorage storage = new TaskStorage("test_tasks.csv");
+        assertEquals("3", storage.getNextAvailableId(testTasks));
     }
 }

@@ -15,7 +15,7 @@ import java.util.Scanner;
 
 public class ConsoleApp {
     private static List<Task> tasks = new ArrayList<>();
-    private static TaskStorage storage = new TaskStorage("tasks.csv");
+    private static final TaskStorage storage = new TaskStorage("tasks.csv");
 
     public static void main(String[] args) {
         loadData();
@@ -30,7 +30,7 @@ public class ConsoleApp {
             System.out.println("2. Add Work Task");
             System.out.println("3. Add Personal Task");
             System.out.println("4. Mark Task Completed");
-            System.out.println("5. Filter Tasks by High Priority (Priority >= 3)");
+            System.out.println("5. Filter Tasks by Priority");
             System.out.println("6. Save & Exit");
             System.out.print("Choose an option: ");
 
@@ -38,33 +38,24 @@ public class ConsoleApp {
 
             try {
                 switch (choice) {
-                    case "1":
-                        viewTasks(tasks);
-                        break;
-                    case "2":
-                        addWorkTask(scanner);
-                        break;
-                    case "3":
-                        addPersonalTask(scanner);
-                        break;
-                    case "4":
-                        markTaskCompleted(scanner);
-                        break;
-                    case "5":
-                        filterHighPriority();
-                        break;
-                    case "6":
+                    case "1" -> viewTasks(tasks);
+                    case "2" -> addWorkTask(scanner);
+                    case "3" -> addPersonalTask(scanner);
+                    case "4" -> markTaskCompleted(scanner);
+                    case "5" -> filterByPriority(scanner);
+                    case "6" -> {
                         storage.saveTasks(tasks);
                         System.out.println("Tasks saved successfully. Goodbye!");
                         running = false;
-                        break;
-                    default:
-                        System.out.println("Invalid option. Please try again.");
+                    }
+                    default -> System.out.println("Invalid option. Please try again.");
                 }
             } catch (InvalidTaskDataException e) {
-                System.out.println("Error: " + e.getMessage());
+                System.out.println("Validation Error: " + e.getMessage());
             } catch (IOException e) {
                 System.out.println("File Storage Error: " + e.getMessage());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input: Priority must be a number between 1 and 5.");
             }
         }
         scanner.close();
@@ -91,13 +82,14 @@ public class ConsoleApp {
     }
 
     private static void addWorkTask(Scanner scanner) throws InvalidTaskDataException {
-        System.out.print("Enter Task ID: ");
-        String id = scanner.nextLine();
+        String id = storage.getNextAvailableId(tasks);
+        System.out.println("Assigning Task ID: " + id);
+
         System.out.print("Enter Title: ");
         String title = scanner.nextLine();
-        System.out.print("Enter Priority (1-5): ");
+        System.out.print("Enter Priority (1 = Lowest, 5 = Highest): ");
         int priority = Integer.parseInt(scanner.nextLine());
-        System.out.print("Enter Project Code: ");
+        System.out.print("Enter Project Code (e.g., PROJ-101): ");
         String projectCode = scanner.nextLine();
 
         tasks.add(new WorkTask(id, title, priority, projectCode));
@@ -105,11 +97,12 @@ public class ConsoleApp {
     }
 
     private static void addPersonalTask(Scanner scanner) throws InvalidTaskDataException {
-        System.out.print("Enter Task ID: ");
-        String id = scanner.nextLine();
+        String id = storage.getNextAvailableId(tasks);
+        System.out.println("Assigning Task ID: " + id);
+
         System.out.print("Enter Title: ");
         String title = scanner.nextLine();
-        System.out.print("Enter Priority (1-5): ");
+        System.out.print("Enter Priority (1 = Lowest, 5 = Highest): ");
         int priority = Integer.parseInt(scanner.nextLine());
         System.out.print("Is this urgent? (true/false): ");
         boolean urgent = Boolean.parseBoolean(scanner.nextLine());
@@ -131,15 +124,18 @@ public class ConsoleApp {
         System.out.println("Task ID not found.");
     }
 
-    private static void filterHighPriority() {
-        PriorityFilter filter = new PriorityFilter(3);
+    private static void filterByPriority(Scanner scanner) {
+        System.out.print("Enter minimum priority threshold to filter by (1-5): ");
+        int threshold = Integer.parseInt(scanner.nextLine());
+
+        PriorityFilter filter = new PriorityFilter(threshold);
         List<Task> filtered = new ArrayList<>();
         for (Task task : tasks) {
             if (filter.matches(task)) {
                 filtered.add(task);
             }
         }
-        System.out.println("\n--- High Priority Tasks (Priority >= 3) ---");
+        System.out.println("\n--- Tasks with Priority >= " + threshold + " ---");
         viewTasks(filtered);
     }
 }
