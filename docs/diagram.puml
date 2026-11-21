@@ -1,0 +1,82 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "com.taskmanager.ui" {
+    class ConsoleApp {
+        - {static} tasks : List<Task>
+        - {static} storage : TaskStorage
+        + {static} main(args : String[]) : void
+        - {static} loadData() : void
+        - {static} viewTasks(taskList : List<Task>) : void
+        - {static} addWorkTask(scanner : Scanner) : void
+        - {static} addPersonalTask(scanner : Scanner) : void
+        - {static} markTaskCompleted(scanner : Scanner) : void
+        - {static} filterByPriority(scanner : Scanner) : void
+    }
+}
+
+package "com.taskmanager.model" {
+    abstract class Task implements Comparable {
+        - id : String
+        - title : String
+        - priority : int
+        - completed : boolean
+        + Task(id : String, title : String, priority : int)
+        + getId() : String
+        + getTitle() : String
+        + getPriority() : int
+        + isCompleted() : boolean
+        + setCompleted(completed : boolean) : void
+        + {abstract} calculatePriorityScore() : int
+        + compareTo(other : Task) : int
+    }
+
+    class WorkTask extends Task {
+        - projectCode : String
+        + WorkTask(id : String, title : String, priority : int, projectCode : String)
+        + getProjectCode() : String
+        + calculatePriorityScore() : int
+    }
+
+    class PersonalTask extends Task {
+        - urgent : boolean
+        + PersonalTask(id : String, title : String, priority : int, urgent : boolean)
+        + isUrgent() : boolean
+        + calculatePriorityScore() : int
+    }
+}
+
+package "com.taskmanager.strategy" {
+    interface TaskFilterStrategy {
+        + matches(task : Task) : boolean
+    }
+
+    class PriorityFilter implements TaskFilterStrategy {
+        - minPriority : int
+        + PriorityFilter(minPriority : int)
+        + matches(task : Task) : boolean
+    }
+}
+
+package "com.taskmanager.persistence" {
+    class TaskStorage {
+        - filePath : String
+        + TaskStorage(filePath : String)
+        + loadTasks() : List<Task>
+        + saveTasks(tasks : List<Task>) : void
+        + getNextAvailableId(tasks : List<Task>) : String
+    }
+}
+
+package "com.taskmanager.exception" {
+    class InvalidTaskDataException extends Exception {
+        + InvalidTaskDataException(message : String)
+    }
+}
+
+ConsoleApp "1" o-- "0..*" Task : manages
+ConsoleApp "1" --> "1" TaskStorage : uses
+ConsoleApp ..> PriorityFilter : creates
+TaskStorage ..> InvalidTaskDataException : throws
+Task ..> InvalidTaskDataException : throws
+@enduml
