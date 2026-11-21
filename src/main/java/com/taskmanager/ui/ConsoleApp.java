@@ -9,7 +9,6 @@ import com.taskmanager.strategy.PriorityFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -55,7 +54,7 @@ public class ConsoleApp {
             } catch (IOException e) {
                 System.out.println("File Storage Error: " + e.getMessage());
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input: Priority must be a number between 1 and 5.");
+                System.out.println("Invalid input: Please enter a valid number.");
             }
         }
         scanner.close();
@@ -75,7 +74,8 @@ public class ConsoleApp {
             System.out.println("No tasks found.");
             return;
         }
-        Collections.sort(taskList);
+        // Lambda sort by computed priority score (highest first)
+        taskList.sort((t1, t2) -> Integer.compare(t2.calculatePriorityScore(), t1.calculatePriorityScore()));
         for (Task task : taskList) {
             System.out.println(task);
         }
@@ -87,10 +87,14 @@ public class ConsoleApp {
 
         System.out.print("Enter Title: ");
         String title = scanner.nextLine();
+        if (title.contains(",")) throw new InvalidTaskDataException("Title cannot contain commas.");
+
         System.out.print("Enter Priority (1 = Lowest, 5 = Highest): ");
         int priority = Integer.parseInt(scanner.nextLine());
+
         System.out.print("Enter Project Code (e.g., PROJ-101): ");
         String projectCode = scanner.nextLine();
+        if (projectCode.contains(",")) throw new InvalidTaskDataException("Project code cannot contain commas.");
 
         tasks.add(new WorkTask(id, title, priority, projectCode));
         System.out.println("Work task added successfully!");
@@ -102,8 +106,11 @@ public class ConsoleApp {
 
         System.out.print("Enter Title: ");
         String title = scanner.nextLine();
+        if (title.contains(",")) throw new InvalidTaskDataException("Title cannot contain commas.");
+
         System.out.print("Enter Priority (1 = Lowest, 5 = Highest): ");
         int priority = Integer.parseInt(scanner.nextLine());
+
         System.out.print("Is this urgent? (true/false): ");
         boolean urgent = Boolean.parseBoolean(scanner.nextLine());
 
