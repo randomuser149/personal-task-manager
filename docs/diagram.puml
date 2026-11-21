@@ -1,6 +1,5 @@
 @startuml
 skinparam classAttributeIconSize 0
-skinparam linetype ortho
 
 package "com.taskmanager.ui" {
     class ConsoleApp {
