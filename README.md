@@ -3,9 +3,6 @@
 ## Project Summary
 A Java 17 command-line task management application built with Maven that allows users to create work and personal tasks, dynamically compute and sort tasks by priority score, filter tasks by priority threshold, and persist data across sessions in CSV format.
 
-## Contributor
-**Fődi Mátyás** (`randomuser149`)
-
 ## Prerequisites
 - Java 17+
 - Apache Maven 3.8+
@@ -60,4 +57,4 @@ From a clean checkout:
 - **Benefit:** Decouples task filtering rules from the CLI menu loop so new filtering policies can be introduced without modifying `ConsoleApp`.
 
 ## Contributors
-- **[Your Name]** (`randomuser149`)
+- **Fődi Mátyás** (`randomuser149`)
