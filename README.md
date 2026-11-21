@@ -1,18 +1,16 @@
 # Personal Task Manager
 
-A Java 17 command-line task management application built with Maven.
+## Project Summary
+A Java 17 command-line task management application built with Maven that allows users to create work and personal tasks, dynamically compute and sort tasks by priority score, filter tasks by priority threshold, and persist data across sessions in CSV format.
 
-## Problem Statement
-Individuals balancing professional deliverables and personal errands need a lightweight tool to categorize tasks, calculate effective priority scores dynamically, filter high-priority items, and retain task data across sessions without external database setup.
-
-## Contributors
-- `randomuser149`
+## Contributor
+**Fődi Mátyás** (`randomuser149`)
 
 ## Prerequisites
 - Java 17+
 - Apache Maven 3.8+
 
-## Build, Test, and Run Instructions
+## Build, Test, and Run Commands
 From a clean checkout:
 
 1. **Run the JUnit 5 test suite:**
@@ -23,99 +21,43 @@ From a clean checkout:
 
        mvn compile exec:java -Dexec.mainClass="com.taskmanager.ui.ConsoleApp"
 
-## Evaluation Guide
-1. Run `mvn test` and verify all 5 unit tests pass.
-2. Start the application with `mvn compile exec:java -Dexec.mainClass="com.taskmanager.ui.ConsoleApp"`.
-3. Add a **Work Task** (option `2`, priority `4`, project `PROJ-101`) and a **Personal Task** (option `3`, priority `3`, urgent `true`).
-4. Select option `1` to verify polymorphic priority scoring (`WorkTask` = `priority * 2`; `PersonalTask` = `priority + 3` if urgent) and descending score order.
-5. Select option `5` and enter threshold `4` to verify Strategy-based filtering.
-6. Test validation by entering priority `9` or a title containing a comma (`,`)—`InvalidTaskDataException` is caught gracefully.
-7. Select option `6` to save to `tasks.csv`, then restart the application to confirm tasks reload automatically.
+3. **Evaluate the application:**
+   - Add a Work Task (`2`, priority `4`, project `PROJ-101`) and a Personal Task (`3`, priority `3`, urgent `true`).
+   - View All Tasks (`1`) to verify polymorphic priority scoring (`WorkTask` = `priority * 2`; `PersonalTask` = `priority + 3` if urgent) and descending score order.
+   - Filter Tasks (`5`, threshold `4`) to verify Strategy-based filtering.
+   - Enter an invalid priority (`9`) or a comma in a title to verify `InvalidTaskDataException` handling.
+   - Save & Exit (`6`), then rerun the application to confirm tasks reload from `tasks.csv`.
 
-## UML Class Diagram
-*(Editable PlantUML source available at [`docs/diagram.puml`](docs/diagram.puml))*
+## Sample Usage
 
-~~~mermaid
-classDiagram
-    class ConsoleApp {
-        -List~Task~ tasks$
-        -TaskStorage storage$
-        +main(String[] args)$ void
-        -loadData()$ void
-        -viewTasks(List~Task~ taskList)$ void
-        -addWorkTask(Scanner scanner)$ void
-        -addPersonalTask(Scanner scanner)$ void
-        -markTaskCompleted(Scanner scanner)$ void
-        -filterByPriority(Scanner scanner)$ void
-    }
+    === PERSONAL TASK MANAGER ===
 
-    class Task {
-        <<abstract>>
-        -String id
-        -String title
-        -int priority
-        -boolean completed
-        +Task(String id, String title, int priority)
-        +getId() String
-        +getTitle() String
-        +getPriority() int
-        +isCompleted() boolean
-        +setCompleted(boolean completed) void
-        +calculatePriorityScore()* int
-        +compareTo(Task other) int
-    }
+    --- MENU ---
+    1. View All Tasks
+    2. Add Work Task
+    3. Add Personal Task
+    4. Mark Task Completed
+    5. Filter Tasks by Priority
+    6. Save & Exit
+    Choose an option: 2
+    Assigning Task ID: 1
+    Enter Title: Implement Strategy Pattern
+    Enter Priority (1 = Lowest, 5 = Highest): 4
+    Enter Project Code (e.g., PROJ-101): PROJ-101
+    Work task added successfully!
 
-    class WorkTask {
-        -String projectCode
-        +WorkTask(String id, String title, int priority, String projectCode)
-        +getProjectCode() String
-        +calculatePriorityScore() int
-    }
-
-    class PersonalTask {
-        -boolean urgent
-        +PersonalTask(String id, String title, int priority, boolean urgent)
-        +isUrgent() boolean
-        +calculatePriorityScore() int
-    }
-
-    class TaskFilterStrategy {
-        <<interface>>
-        +matches(Task task) boolean
-    }
-
-    class PriorityFilter {
-        -int minPriority
-        +PriorityFilter(int minPriority)
-        +matches(Task task) boolean
-    }
-
-    class TaskStorage {
-        -String filePath
-        +TaskStorage(String filePath)
-        +loadTasks() List~Task~
-        +saveTasks(List~Task~ tasks) void
-        +getNextAvailableId(List~Task~ tasks) String
-    }
-
-    class InvalidTaskDataException {
-        +InvalidTaskDataException(String message)
-    }
-
-    ConsoleApp "1" o-- "0..*" Task : manages
-    ConsoleApp "1" --> "1" TaskStorage : uses
-    ConsoleApp ..> PriorityFilter : creates
-    Task <|-- WorkTask
-    Task <|-- PersonalTask
-    TaskFilterStrategy <|.. PriorityFilter
-    Task ..> InvalidTaskDataException : throws
-    TaskStorage ..> InvalidTaskDataException : throws
-~~~
-
-## Implemented Requirements & Design Pattern
-- **Encapsulation:** Private fields with constructor validation across domain, strategy, and persistence classes.
+## Implemented Requirements
+- **Encapsulation:** Private fields with constructor validation across `Task`, `WorkTask`, `PersonalTask`, `PriorityFilter`, and `TaskStorage`.
 - **Abstraction, Inheritance & Polymorphism:** Abstract `Task` extended by `WorkTask` and `PersonalTask` overriding `calculatePriorityScore()` at runtime.
+- **Relationships:** Aggregation between `ConsoleApp` (`1`) and `Task` (`0..*`), and association between `ConsoleApp` (`1`) and `TaskStorage` (`1`).
 - **Collections & Generics:** `ArrayList<Task>`, `Comparable<Task>`, and lambda sorting (`taskList.sort(...)`).
-- **Exceptions & Persistence:** Custom checked `InvalidTaskDataException` and CSV file persistence using `try-with-resources` in `TaskStorage`.
-- **Strategy Pattern:** `TaskFilterStrategy` and `PriorityFilter` decouple filtering rules from `ConsoleApp`.
-- **Design Details:** See [`docs/design.md`](docs/design.md) for user stories, design decisions, and known limitations.
+- **Exceptions:** Custom checked `InvalidTaskDataException` enforcing priority bounds (`1–5`), non-empty titles, and CSV delimiter rules.
+- **Persistence:** `TaskStorage` reads and writes `tasks.csv` using `try-with-resources`.
+- **Documentation (`docs/`):** Viewable UML class diagram & design notes in [`docs/design.md`](docs/design.md); editable PlantUML source in [`docs/diagram.puml`](docs/diagram.puml).
+
+## Chosen Pattern: Strategy
+- **Participating Classes:** `TaskFilterStrategy` (interface), `PriorityFilter` (concrete strategy), and `ConsoleApp` (client).
+- **Benefit:** Decouples task filtering rules from the CLI menu loop so new filtering policies can be introduced without modifying `ConsoleApp`.
+
+## Contributors
+- **[Your Name]** (`randomuser149`)
